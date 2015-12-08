@@ -24,15 +24,17 @@ class House:
 class Room:
     """Pain.
 
-    attributes: name, (string), description (string)[, list of Objects, list of Persons]"""
+    attributes: name, (string), description (string)[, \
+    list of adjacent Rooms, list of interior Rooms, \
+    list of Objects, list of Persons, article (string) \
+    can_describe (boolean)]"""
 
-    def __init__(self, name, desc, adj=[], inter=[], obj=[], pers=[]):
-        """Store the name, description of, list of Rooms adjacent to, list
-        of interior Rooms, list of Objects within, and list of Persons
-        within the Room.
+    def __init__(self, name, desc, adj=[], inter=[], obj=[], pers=[], art="",
+                 can_describe=True):
+        """Store the attributes.
 
-        Room, string, string, list of Rooms, list of Rooms, list of Objects,
-        list of Persons -> None"""
+        Room, string, string[, list of Rooms, list of Rooms, list of Objects,
+        list of Persons, string, boolean] -> None"""
 
         self.name = name
         self.desc = desc
@@ -40,6 +42,17 @@ class Room:
         self.inter = inter
         self.obj = obj
         self.pers = pers
+        self.art = art
+        self.can_describe = can_describe
+
+    def describe(self):
+        """Describe the Room - 'You are standing in...', description,
+        Persons and Objects in Room, and adjadcent and interior Rooms."""
+
+        return ("You are standing in "+self.art+self.name+". "
+                +self.desc+"\n"
+                +self.describe_contents()+"\n"
+                +self.describe_rooms())
 
     def describe_rooms(self):
         """Describe which Rooms are adjacent to this Room.
@@ -49,38 +62,39 @@ class Room:
         adj_str = ""
         for room in self.adj:
             if len(self.adj) == 1:
-                adj_str = room.name
+                adj_str = room.art+room.name
                 verb = " is"
             elif len(self.adj) == 2:
                 if room == self.adj[-1]:
-                    adj_str += " and "+room.name
+                    adj_str += " and "+room.art+room.name
                 else:
-                    adj_str = room.name
+                    adj_str = room.art+room.name
                 verb = " are"
             else:
                 if room == self.adj[-1]:
-                    adj_str += "and "+room.name
+                    adj_str += "and "+room.art+room.name
                 else:
-                    adj_str += room.name+", "
+                    adj_str += room.art+room.name+", "
                 verb = " are"
                 
         inter_str = ""
         for room in self.inter:
             if len(self.inter) == 1:
-                inter_str = room.name
+                inter_str = room.art+room.name
                 verb = " is"
             elif len(self.inter) == 2:
                 if room == self.inter[-1]:
-                    inter_str += " and "+room.name
+                    inter_str += " and "+room.art+room.name
                 else:
-                    inter_str = room.name
+                    inter_str = room.art+room.name
                 verb = " are"
             else:
                 if room == self.inter[-1]:
-                    inter_str += "and "+room.name
+                    inter_str += "and "+room.art+room.name
                 else:
-                    inter_str += room.name+", "
+                    inter_str += room.art+room.name+", "
                 verb = " are"
+                
         if inter_str == "":
             return ("From here, you can go to "+adj_str+".")
         else:
@@ -117,28 +131,51 @@ class Room:
             return ("There's nothing of much interest in the room, but\n"
                     +pers_str+verb+" here.")
         obj_str = ""
+        mov_obj = []
         for obj in self.obj:
-            if len(self.obj) == 0:
+            if obj.movable == True:
+                mov_obj.append(obj)
+        for obj in mov_obj:
+            if len(mov_obj) == 0:
                 obj_str = ""
-            elif len(self.obj) == 1:
+            elif len(mov_obj) == 1:
                 obj_str = obj.art+obj.name
-            elif len(self.obj) == 2:
-                if obj == self.obj[-1]:
+            elif len(mov_obj) == 2:
+                if obj == mov_obj[-1]:
                     obj_str += " and "+obj.art+obj.name
                 else:
                     obj_str = obj.art+obj.name
             else:
-                if obj == self.obj[-1]:
+                if obj == mov_obj[-1]:
                     obj_str += "and "+obj.art+obj.name
                 else:
                     obj_str += obj.art+obj.name+", "
-        if len(self.obj) > 0 and len(self.pers) == 0:
-            return ("There's no one else in here, but you notice some items around"
-                    "the room - "+obj_str+".")
-        if len(self.obj) > 0 and len(self.pers) > 0:
+        if len(mov_obj) > 0 and len(self.pers) == 0:
+            return ("There's no one else in here, but you notice some items around the room - \n"
+                    +obj_str+".")
+        if len(mov_obj) > 0 and len(self.pers) > 0:
             return (pers_str+verb+" here.\n"
                     "You notice some items around the room - "+obj_str+".")
 
+class Unlit(Room):
+    """Create an Unlit Room.
+
+    attributes: name, (string), description (string)[, \
+    list of adjacent Rooms, list of interior Rooms, \
+    list of Objects, list of Persons, article (string) \
+    can_describe (boolean), is_lit (boolean), has_light_source (boolean)]"""
+
+    def __init__(self, name, desc, adj=[], inter=[], obj=[], pers=[], art="", can_describe=False, is_lit=False, has_light_source=False):
+        """Store the attributes.
+
+        Unlit, string, string, list of Rooms, list of Rooms,
+        list of Objects, list of Persons, string, boolean,
+        boolean, boolean -> None"""
+
+        Room.__init__(self, name, desc, adj, inter, obj, pers, art, can_describe)
+        self.is_lit = is_lit
+        self.has_light_source = has_light_source
+    
 class Person:
     """Create a Person.
 
@@ -234,7 +271,7 @@ class Object:
     """Create an Object.
 
     attributes: name (string), description (string), article (string),
-    location (Room)[, movable (boolean), was_examined (boolean)]"""
+    location (Room or Go_Deeper)[, movable (boolean), was_examined (boolean)]"""
 
     def __init__(self, name, desc, art, loc, movable=False, was_examined=False):
         """Store the name, description, and location of the Object.
@@ -260,13 +297,13 @@ class On_or_Off(Object):
     """Create an Object that can be turned on or off.
 
     attributes: name (string), description (string), article (string),
-    location (Room)[, movable (boolean), was_examined (boolean),
+    location (Room or Go_Deeper)[, movable (boolean), was_examined (boolean),
     is_on (boolean)]"""
 
     def __init__(self, name, desc, art, loc, movable=False, was_examined=False, is_on=False):
         """Store the attributes.
 
-        string, string, string, Rooom, [bool, bool, bool] -> None"""
+        On_or_Off, string, string, string, Rooom[, bool, bool, bool] -> None"""
 
         Object.__init__(self, name, desc, art, loc, movable, was_examined)
         self.is_on = is_on
@@ -277,3 +314,81 @@ class On_or_Off(Object):
         On_or_Off -> None"""
 
         self.is_on = True
+
+class Go_Deeper(Object):
+    """Create an Object that, when examined, presents another set of options
+    rather than returning to the main option loop.
+
+    attributes: name (string), description (string), article (string),
+    traits (list of Objects), location (Room or Go_Deeper)[, movable (boolean),
+    was_examined (boolean)]"""
+
+    def __init__(self, name, desc, art, traits, loc, movable=False, was_examined=False):
+        """Store the attributes.
+
+        Go_Deeper, string, string, string, traits, Room[, bool, bool] -> None"""
+
+        Object.__init__(self, name, desc, art, loc, movable, was_examined)
+        self.traits = traits
+
+    def describe(self):
+        """Describe the Go_Deeper, then head to the options loop.
+
+        Go_Deeper -> None"""
+
+        #print(self.desc+"\n")
+
+        return "go_deeper"
+
+    def go_deeper(self):
+        """Go into the options loop for this Go_Deeper.
+
+        Go_Deeper -> None"""
+
+        val = True
+        
+        while True:
+            
+            if val == True:
+                trait_str = ""
+                for obj in self.traits:
+                    if trait_str == "":
+                        trait_str += obj.name
+                    else:
+                        trait_str += ", "+obj.name
+                print(" - ['examine OBJECT'] ( "+trait_str+" )")
+                print(" - ['go back']")
+
+            inp = input("\n")
+            print("")
+
+            val = "invalid"
+
+            # If the command is to examine an object or trait...
+            if inp.lower().startswith("examine"):
+                target = "lol"
+                val = True
+                for obj in obj_list:
+                    if obj.name.lower() == inp[8:].lower().strip("."):
+                        target = obj
+                        if target not in self.traits:
+                            val = "object not here"
+                if target == "lol":
+                    val = "invalid target"
+                if val == True:
+                    print(target.describe())
+                    print("")
+
+            # If the command is to go back...
+            if inp == "go back":
+                break
+
+            # If the command is invalid...
+            if val == "invalid":
+                print("not a valid command")
+            if val == "object not here":
+                print("that object is not here")
+            if val == "invalid target":
+                print("not a valid target")
+
+        return ("\nYou turn away from the "+self.name+".")
