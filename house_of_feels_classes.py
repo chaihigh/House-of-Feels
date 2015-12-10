@@ -333,7 +333,8 @@ class Object:
     def __init__(self, name, desc, art, loc, movable=False, was_examined=False):
         """Store the name, description, and location of the Object.
 
-        Object, string, string, string, Room[, bool, bool] -> None"""
+        Object, string, string, string, Room or Go_Deeper[, bool,
+        bool] -> None"""
 
         self.name = name
         self.desc = desc
@@ -349,6 +350,43 @@ class Object:
         
         self.was_examined = True
         return self.desc
+
+
+# Define a Hidden Object...
+class Hidden(Object):
+    """Create an Object that is Hidden before being examined.
+
+    attributes: name (string), hidden name (string), description (string),
+    hidden description (string), article (string), hidden article (string),
+    pre-reveal description (string), location (Room or Go_Deeper)[, \
+    movable (boolean), was_examined (boolean)]"""
+
+    def __init__(self, name, hid_name, desc, hid_desc, art, hid_art, \
+                 pre_reveal_desc, loc, movable=False, was_revealed=False, \
+                 was_examined=False):
+        """Store the attributes.
+
+        Object, string, string, string, string, string, string, string,
+        Room or Go_Deeper[, bool, bool] -> None"""
+
+        Object.__init__(self, name, desc, art, loc, movable, was_examined)
+        self.hid_name = hid_name
+        self.hid_desc = hid_desc
+        self.hid_art = hid_art
+        self.pre_reveal_desc = pre_reveal_desc
+        self.was_revealed = was_revealed
+
+    def describe(self):
+        """Describe the Hidden Object.
+
+        Hidden -> string"""
+
+        if self.was_revealed == False:
+            self.was_revealed = True
+            return self.hid_desc
+        else:
+            self.was_examined = True
+            return self.desc
 
 
 # Define an On_or_Off...

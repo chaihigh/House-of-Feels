@@ -195,21 +195,36 @@ def reaction(go_deeper, inp):
             aidans_sink_cab.desc = "It's open."
             if aidans_sink_cab.objs != []:
                 obj_str = ""
+                objs_str = ""
+                hid_str = ""
+                hid_num = 0
+                go_deeper_unhid_objs = []
                 for obj in go_deeper.objs:
-                    if len(go_deeper.objs) == 1:
-                        obj_str += obj.art+obj.name
-                    elif len(go_deeper.objs) == 2:
-                        if obj == go_deeper.objs[-1]:
-                            obj_str += " and "+obj.art+obj.name
-                        else:
-                            obj_str += obj.art+obj.name
+                    if (isinstance(obj, Hidden) and obj.was_revealed == True) \
+                       or isinstance(obj, Hidden) == False:
+                        go_deeper_unhid_objs.append(obj)
                     else:
-                        if obj == go_deeper.objs[-1]:
-                            obj_str += "and "+obj.art+obj.name
+                        hid_str += " "+obj.pre_reveal_desc
+                for obj in go_deeper_unhid_objs:
+                    #if isinstance(obj, Hidden) and obj.was_revealed == False:
+                    #    obj_str = ""
+                    #    hid_str += " "+obj.pre_reveal_desc
+                    #else:
+                    obj_str = obj.art+obj.name
+                    if len(go_deeper_unhid_objs) == 1:
+                        objs_str += obj_str
+                    elif len(go_deeper_unhid_objs) == 2:
+                        if obj == go_deeper_unhid_objs[-1]:
+                            objs_str += " and "+obj_str
                         else:
-                            obj_str += obj.art+obj.name+", "
+                            objs_str += obj_str
+                    else:
+                        if obj == go_deeper_unhid_objs[-1]:
+                            objs_str += "and "+obj_str
+                        else:
+                            objs_str += obj_str+", "
                 print("You pull both handles and swing the cabinet doors open.\n"
-                      +"Inside, you see "+obj_str+".\n")
+                      +"Inside, you see "+objs_str+"."+hid_str+"\n")
             else:
                 print("You pull both handles and swing the cabinet doors open."
                       +"It's empty.\n")
@@ -243,10 +258,22 @@ def go_deeper(go_deeper):
             try:
                 obj_str = ""
                 for obj in go_deeper.objs:
-                    if obj_str == "":
-                        obj_str += obj.name
+                    if isinstance(obj, Hidden):
+                        if obj.was_revealed == False:
+                            if obj_str == "":
+                                obj_str += obj.hid_name
+                            else:
+                                obj_str += ", "+obj.hid_name
+                        else:
+                            if obj_str == "":
+                                obj_str += obj.name
+                            else:
+                                obj_str += ", "+obj.name
                     else:
-                        obj_str += ", "+obj.name
+                        if obj_str == "":
+                            obj_str += obj.name
+                        else:
+                            obj_str += ", "+obj.name
                 if go_deeper.can_examine == False:
                     print(" - ['examine OBJECT'] ( "+go_deeper.name+" )")
                 else:
@@ -281,6 +308,9 @@ def go_deeper(go_deeper):
                 print(go_deeper.desc+"\n")
             else:
                 for obj in obj_list:
+                    if isinstance(obj, Hidden):
+                        if obj.hid_name.lower() == inp[8:].lower():
+                            target = obj
                     if obj.name.lower() == inp[8:].lower():
                         target = obj
                 for trait in trait_list:
@@ -289,7 +319,7 @@ def go_deeper(go_deeper):
                 if target not in go_deeper.traits and target not in go_deeper.objs:
                     val = "invalid target"
                 if target == "lol":
-                    val = "invalid target"
+                    val = "invalid target"                        
                 try:
                     if go_deeper.can_examine == False:
                         val = "invalid target"
@@ -391,23 +421,32 @@ def unlit(unlit):
 ######MAIN##LOOP######
 ######################
 
-val = True
 print("""You stand before a house. Within this house... There are many dark and
 painful things that lurk. If you choose to enter, you may never reemerge - and
 if you do... you will not be the same.
 """)
 print("What do you want to do?")
+
+val = True
+
 while True:
-    print("\n - ['enter']\n - ['turn back']\n")
+    if val == True:
+        print("\n - ['enter']\n - ['turn back']\n")
+
+    val = "invalid"
+    
     inp = input()
     print("")
+    
     if inp.lower() == "turn back":
+        val = True
         print("""
 A wise decision. You step away from the terrible house,
 and flee the very sight of it.\n""")
         val = "turn back"
         break
     elif inp.lower() == "enter":
+        val = True
         mads.loc = living_room
         print("""Very well.
 As your hand closes on the door knob, a shudder runs down your spine.
@@ -418,8 +457,11 @@ The door eases to a shut behind you of its own accord.
         print("")
         break
     else:
-        print("[not a valid option]")
+        val = "invalid"
+    if val == "invalid":
+        print("[not a valid command]\n")
 
+val = True
 
 while True:
 
