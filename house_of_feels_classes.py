@@ -9,6 +9,8 @@ from house_of_feels_chic import *
 from house_of_feels_black import *
 from house_of_feels_bee import *
 
+
+# Define a House...
 class House:
     """Satan.
 
@@ -21,6 +23,9 @@ class House:
 
         self.rooms = rooms
 
+
+
+# Define a Room...
 class Room:
     """Pain.
 
@@ -29,7 +34,7 @@ class Room:
     list of Objects, list of Persons, article (string) \
     can_describe (boolean)]"""
 
-    def __init__(self, name, desc, adj=[], inter=[], obj=[], pers=[], art="",
+    def __init__(self, name, desc, adj=[], inter=[], obj=[], pers=[], art="", \
                  can_describe=True):
         """Store the attributes.
 
@@ -58,25 +63,33 @@ class Room:
         """Describe which Rooms are adjacent to this Room.
 
         Room -> string"""
-        
+
         adj_str = ""
         for room in self.adj:
+            if room.name == "second floor landing" and \
+               self.name == "west hallway":
+                this_room_str = "the second floor"
+            elif room.name == "west hallway" and \
+                 self.name == "second floor landing":
+                this_room_str = "the first floor"
+            else:
+                this_room_str = room.art+room.name
             if len(self.adj) == 1:
-                adj_str = room.art+room.name
+                adj_str = this_room_str
                 verb = " is"
             elif len(self.adj) == 2:
                 if room == self.adj[-1]:
-                    adj_str += " and "+room.art+room.name
+                    adj_str += " and "+this_room_str
                 else:
-                    adj_str = room.art+room.name
+                    adj_str = this_room_str
                 verb = " are"
             else:
                 if room == self.adj[-1]:
-                    adj_str += "and "+room.art+room.name
+                    adj_str += "and "+this_room_str
                 else:
-                    adj_str += room.art+room.name+", "
+                    adj_str += this_room_str+", "
                 verb = " are"
-                
+
         inter_str = ""
         for room in self.inter:
             if len(self.inter) == 1:
@@ -151,12 +164,19 @@ class Room:
                 else:
                     obj_str += obj.art+obj.name+", "
         if len(mov_obj) > 0 and len(self.pers) == 0:
-            return ("There's no one else in here, but you notice some items around the room - \n"
+            return ("There's no one else in here, but you notice some items "
+                    +"around the room - \n"
                     +obj_str+".")
         if len(mov_obj) > 0 and len(self.pers) > 0:
             return (pers_str+verb+" here.\n"
                     "You notice some items around the room - "+obj_str+".")
+        if len(mov_obj) == 0 and len(self.obj) > 0 and len(self.pers) == 0:
+            return ("There's no one else in here.")
+        if len(mov_obj) == 0 and len(self.obj) > 0 and len(self.pers) > 0:
+            return (pers.str+verb+" here.")
 
+
+# Define an Unlit...
 class Unlit(Room):
     """Create an Unlit Room.
 
@@ -165,17 +185,22 @@ class Unlit(Room):
     list of Objects, list of Persons, article (string) \
     can_describe (boolean), is_lit (boolean), has_light_source (boolean)]"""
 
-    def __init__(self, name, desc, adj=[], inter=[], obj=[], pers=[], art="", can_describe=False, is_lit=False, has_light_source=False):
+    def __init__(self, name, desc, adj=[], inter=[], obj=[], pers=[], art="", \
+                 can_describe=False, is_lit=False, has_light_source=False):
         """Store the attributes.
 
         Unlit, string, string, list of Rooms, list of Rooms,
         list of Objects, list of Persons, string, boolean,
         boolean, boolean -> None"""
 
-        Room.__init__(self, name, desc, adj, inter, obj, pers, art, can_describe)
+        Room.__init__(self, name, desc, adj, inter, obj, pers, art, \
+                      can_describe)
         self.is_lit = is_lit
         self.has_light_source = has_light_source
-    
+
+
+
+# Define a Person...
 class Person:
     """Create a Person.
 
@@ -218,7 +243,8 @@ class Person:
                     inven_str += "and "+obj.art+obj.name
                 else:
                     inven_str += obj.art+obj.name+", "
-        return ("You open up your backpack and check its contents. You have "+inven_str+".")
+        return ("You open up your backpack and check its contents. You have "
+                +inven_str+".")
 
     def describe(self):
         """Describe the Person.
@@ -253,20 +279,51 @@ class Person:
         if self.name == "Bee":
             return talk_to_bee()
 
+
+# Define a Player...
 class Player(Person):
     """Create a Player.
 
     attributes: name (string), description (string)[,location (Room),
     inventory (list of Objects), sanity (integer)"""
 
-    def __init__(self, name, desc, loc="porch", inven=[], san=100):
+    def __init__(self, name, desc, loc="porch", prev_loc="prev_loc", \
+                 inven=[], san=100):
         """Store the Player's attributes.
 
         Player, string, string, Room, list of Objects, integer -> None"""
 
         Person.__init__(self, name, desc, loc, inven)
+        self.prev_loc = prev_loc
         self.san = san
 
+
+
+# Define a Trait...
+class Trait:
+    """Create a Trait.
+
+    attributes: name (string), description (string), article (string)"""
+
+    def __init__(self, name, desc, art):
+        """Store the Trait's name, description, and article.
+
+        Trait, string, string, string -> None"""
+
+        self.name = name
+        self.desc = desc
+        self.art = art
+
+    def describe(self):
+        """Describe the Trait.
+
+        Trait -> string"""
+
+        return self.desc
+
+
+        
+# Define an Object...
 class Object:
     """Create an Object.
 
@@ -293,6 +350,8 @@ class Object:
         self.was_examined = True
         return self.desc
 
+
+# Define an On_or_Off...
 class On_or_Off(Object):
     """Create an Object that can be turned on or off.
 
@@ -300,7 +359,8 @@ class On_or_Off(Object):
     location (Room or Go_Deeper)[, movable (boolean), was_examined (boolean),
     is_on (boolean)]"""
 
-    def __init__(self, name, desc, art, loc, movable=False, was_examined=False, is_on=False):
+    def __init__(self, name, desc, art, loc, movable=False, \
+                 was_examined=False, is_on=False):
         """Store the attributes.
 
         On_or_Off, string, string, string, Rooom[, bool, bool, bool] -> None"""
@@ -315,28 +375,31 @@ class On_or_Off(Object):
 
         self.is_on = True
 
+
+# Define a Go_Deeper...
 class Go_Deeper(Object):
     """Create an Object that, when examined, presents another set of options
     rather than returning to the main option loop.
 
     attributes: name (string), description (string), article (string),
     traits (list of Objects), location (Room or Go_Deeper)[, movable (boolean),
-    was_examined (boolean)]"""
+    was_examined (boolean), has_action (boolean)]"""
 
-    def __init__(self, name, desc, art, traits, loc, movable=False, was_examined=False):
+    def __init__(self, name, desc, art, traits, loc, movable=False, \
+                 was_examined=False, has_action=False):
         """Store the attributes.
 
-        Go_Deeper, string, string, string, traits, Room[, bool, bool] -> None"""
+        Go_Deeper, string, string, string, traits, Room[, bool, bool,
+        bool] -> None"""
 
         Object.__init__(self, name, desc, art, loc, movable, was_examined)
         self.traits = traits
+        self.has_action = has_action
 
     def describe(self):
         """Describe the Go_Deeper, then head to the options loop.
 
         Go_Deeper -> None"""
-
-        #print(self.desc+"\n")
 
         return "go_deeper"
 
@@ -392,3 +455,95 @@ class Go_Deeper(Object):
                 print("not a valid target")
 
         return ("\nYou turn away from the "+self.name+".")
+
+
+# Define an Openable...
+class Openable(Go_Deeper):
+    """Define an Openable Go_Deeper Object.
+
+    attributes: name (string), description (string), article (string),
+    traits (list of Traits), objects (list of Object),
+    location (Room or Go_Deeper)[, movable (boolean), was_examined (boolean),
+    has_action (boolean), is_open (boolean), can_examine (bool)]"""
+
+    def __init__(self, name, desc, art, traits, objs, loc, movable=False, \
+                 was_examined=False, has_action=True, is_open=False, \
+                 can_examine=False):
+        """Store the attributes.
+
+        Openable, string, string, string, list of Traits, list of Objects,
+        Room or Go_Deeper[, bool, bool, bool, bool, bool] -> None"""
+
+        Go_Deeper.__init__(self, name, desc, art, traits, loc, movable, \
+                           was_examined, has_action)
+        self.objs = objs
+        self.is_open = is_open
+        self.can_examine = can_examine
+
+    def try_open(self):
+        """Attempt to open the Openable.
+
+        Openable -> bool"""
+
+        self.is_open = True
+
+        return True
+
+    def close(self):
+        """Close the Openable.
+
+        Openable -> None"""
+
+        self.is_open = False
+
+
+# Define a Lockable...
+class Lockable(Openable):
+    """Define Lockable Openable Go_Deeper Object.
+
+    attributes: name (string), description (string), article (string),
+    traits (list of Traits), objects (list of Objects),
+    location (Room or Go_Deeper)[, movable (boolean), was_examined (boolean),
+    has_action (boolean), is_open (boolean), can_examine (bool),
+    is_locked (bool)]"""
+
+    def __init__(self, name, desc, art, traits, objs, loc, movable=False, \
+                 was_examined=False, has_action=True, is_open=False, \
+                 can_examine=False, is_locked=False):
+        """Store the attributes.
+
+        Openable, string, string, string, list of Traits, list of Objects,
+        Room or Go_Deeper[, bool, bool, bool, bool, bool, bool] -> None"""
+
+        Openable.__init__(self, name, desc, art, traits, objs, loc, movable, \
+                          was_examined, has_action, is_open, can_examine)
+        self.is_locked = is_locked
+
+    def try_open(self):
+        """Attemt to open the Lockable.
+
+        Lockable -> bool"""
+
+        if self.is_locked == False:
+            self.is_open = True
+            return True
+        else:
+            return False
+
+    def lock(self):
+        """Lock the Lockable.
+
+        Lockable -> None"""
+
+        self.is_locked = True
+
+    def unlock(self):
+        """Unlock the Lockable.
+
+        Lockable -> None"""
+
+        self.is_locked = False
+
+
+
+
