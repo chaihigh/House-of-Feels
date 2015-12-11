@@ -9,8 +9,23 @@ from house_of_feels_chic import *
 from house_of_feels_black import *
 from house_of_feels_bee import *
 
+# -INDEX-
 
-# Define a House...
+# -HOUSE-
+# -ROOM-
+    # -UNLIT-
+# -PERSON-
+    # -PLAYER-
+# -OBJECT-
+    # -HIDDEN-
+    # -ON_OR_OFF-
+    # -GO_DEEPER-
+        # -OPENABLE-
+            # -LOCKABLE-
+# -TRAIT-
+
+
+# Define a -HOUSE-...
 class House:
     """Satan.
 
@@ -25,7 +40,7 @@ class House:
 
 
 
-# Define a Room...
+# Define a -ROOM-...
 class Room:
     """Pain.
 
@@ -164,19 +179,27 @@ class Room:
                 else:
                     obj_str += obj.art+obj.name+", "
         if len(mov_obj) > 0 and len(self.pers) == 0:
-            return ("There's no one else in here, but you notice some items "
-                    +"around the room - \n"
-                    +obj_str+".")
+            if len(mov_obj) == 1:
+                return ("There's no one else in here, but you notice "+obj_str
+                        +" in the room.")
+            else:
+                return ("There's no one else in here, but you notice some items "
+                        +"around the room - \n"
+                        +obj_str+".")
         if len(mov_obj) > 0 and len(self.pers) > 0:
-            return (pers_str+verb+" here.\n"
-                    "You notice some items around the room - "+obj_str+".")
+            if len(mov_obj) == 1:
+                return (pers_str+verb+" here.\n"
+                        "You notice "+obj_str+" in the room.")
+            else:
+                return (pers_str+verb+" here.\n"
+                        "You notice some items around the room - "+obj_str+".")
         if len(mov_obj) == 0 and len(self.obj) > 0 and len(self.pers) == 0:
             return ("There's no one else in here.")
         if len(mov_obj) == 0 and len(self.obj) > 0 and len(self.pers) > 0:
-            return (pers.str+verb+" here.")
+            return (pers_str+verb+" here.")
 
 
-# Define an Unlit...
+# Define an -UNLIT- Room...
 class Unlit(Room):
     """Create an Unlit Room.
 
@@ -200,7 +223,7 @@ class Unlit(Room):
 
 
 
-# Define a Person...
+# Define a -PERSON-...
 class Person:
     """Create a Person.
 
@@ -280,7 +303,7 @@ class Person:
             return talk_to_bee()
 
 
-# Define a Player...
+# Define a -PLAYER-...
 class Player(Person):
     """Create a Player.
 
@@ -298,32 +321,8 @@ class Player(Person):
         self.san = san
 
 
-
-# Define a Trait...
-class Trait:
-    """Create a Trait.
-
-    attributes: name (string), description (string), article (string)"""
-
-    def __init__(self, name, desc, art):
-        """Store the Trait's name, description, and article.
-
-        Trait, string, string, string -> None"""
-
-        self.name = name
-        self.desc = desc
-        self.art = art
-
-    def describe(self):
-        """Describe the Trait.
-
-        Trait -> string"""
-
-        return self.desc
-
-
         
-# Define an Object...
+# Define an -OBJECT-...
 class Object:
     """Create an Object.
 
@@ -352,7 +351,7 @@ class Object:
         return self.desc
 
 
-# Define a Hidden Object...
+# Define a -HIDDEN- Object...
 class Hidden(Object):
     """Create an Object that is Hidden before being examined.
 
@@ -389,7 +388,7 @@ class Hidden(Object):
             return self.desc
 
 
-# Define an On_or_Off...
+# Define an -ON_OR_OFF- Object...
 class On_or_Off(Object):
     """Create an Object that can be turned on or off.
 
@@ -414,7 +413,7 @@ class On_or_Off(Object):
         self.is_on = True
 
 
-# Define a Go_Deeper...
+# Define a -GO_DEEPER- Object...
 class Go_Deeper(Object):
     """Create an Object that, when examined, presents another set of options
     rather than returning to the main option loop.
@@ -495,7 +494,7 @@ class Go_Deeper(Object):
         return ("\nYou turn away from the "+self.name+".")
 
 
-# Define an Openable...
+# Define an -OPENABLE- Object...
 class Openable(Go_Deeper):
     """Define an Openable Go_Deeper Object.
 
@@ -535,7 +534,7 @@ class Openable(Go_Deeper):
         self.is_open = False
 
 
-# Define a Lockable...
+# Define a -LOCKABLE- Object...
 class Lockable(Openable):
     """Define Lockable Openable Go_Deeper Object.
 
@@ -581,6 +580,33 @@ class Lockable(Openable):
         Lockable -> None"""
 
         self.is_locked = False
+
+
+
+# Define a -TRAIT-...
+class Trait:
+    """Create a Trait.
+
+    attributes: name (string), description (string), article (string)"""
+
+    def __init__(self, name, desc, art):
+        """Store the Trait's name, description, and article.
+
+        Trait, string, string, string -> None"""
+
+        self.name = name
+        self.desc = desc
+        self.art = art
+
+    def describe(self):
+        """Describe the Trait.
+
+        Trait -> string"""
+
+        return self.desc
+
+
+
 
 
 

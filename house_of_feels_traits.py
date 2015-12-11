@@ -1,15 +1,22 @@
 from house_of_feels_classes import *
 
-# In the living room...
+# -INDEX-
 
-# Front door traits...
+# -LIVING ROOM-
+    # -FRONT_DOOR-
+# -WEST HALLWAY-
+    # -PHOTO-
+
+# In the -LIVING ROOM-...
+
+# -FRONT_DOOR- traits...
 peephole = Trait("peephole", "It's a peephole.", "a ")
 front_door_lock = Trait("lock", "It's unlocked.", "a ")
 
 
-# In the west hallway...
+# In the -WEST HALLWAY-...
 
-# Photo traits...
+# -PHOTO- traits...
 tree = Trait("tree", "It's a honey locust.", "a ")
 lake = Trait("lake", "Sunlight glistens on its surface.", "a ")
 

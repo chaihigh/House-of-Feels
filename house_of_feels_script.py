@@ -17,6 +17,43 @@ for openable in obj_list:
         if obj.loc == openable:
             openable.objs.append(obj)
 
+# -INDEX-
+
+# -CHECK_INVEN-
+# -GET_CONTENTS_STR-
+# -GO_DEEPER ACTION-
+    # -OPENABLE ACTIONS-
+    # -FRONT_DOOR ACTIONS-
+# -GO_DEEPER REACTION-
+    # -GO_DEEPER TAKE-
+    # -FRONT_DOOR REACTIONS-
+    # -AIDANS_SINK_CAB REACTIONS-
+    # -BLACKS_DESK REACTIONS-
+# -GO_DEEPER-
+    # -HAS ACTION-
+    # -GO_DEEPER EXAMINE-
+    # -GO_DEEPER GO BACK-
+    # -GO_DEEPER INVALID-
+# -UNLIT-
+    # -UNLIT ACTIONS-
+    # -UNLIT CHECK-
+    # -USE FLASHLIGHT-
+    # -FLIP LIGHT SWITCH-
+    # -UNLIT GO BACK-
+    # -UNLIT INVALID-
+# -ENTRY LOOP-
+# -MAIN LOOP-
+    # -MAIN ACTIONS-
+    # -PUT AWAY-
+    # -TAKE-
+    # -MAIN CHECK-
+    # -MAIN EXAMINE-
+    # -TALK-
+    # -GO TO-
+    # -INVALID-
+
+        
+# To enter the -CHECK_INVEN- loop...
 def check_inven(player):
     """Print the contents of the Player's inventory, and go into the
     options loop.
@@ -63,7 +100,7 @@ def check_inven(player):
             val = True
             target = "lol"
             for obj in player.inven:
-                if obj.name == inp[5:].lower():
+                if obj.name.lower() == inp[5:].lower():
                     target = obj
                     if target not in player.inven:
                         val = "object not in inven"
@@ -77,10 +114,17 @@ def check_inven(player):
                 player.loc.obj.append(target)
                 target.loc = player.loc
                 if last_obj == False:
-                    print("You pull the "+target.name+" out of your backpack and drop it.")
+                    if target.name[0].isupper():
+                        print("You pull "+target.name+" out of your backpack and drop it.")
+                    else:
+                        print("You pull the "+target.name+" out of your backpack and drop it.")
                 else:
-                    print("You pull the "+target.name+" out of your backpack and drop it. "
-                          +"Your backpack is empty.")
+                    if target.name[0].isupper():
+                        print("You pull "+target.name+" out of your backpack and drop it. "
+                              +"Your backpack is empty.")
+                    else:
+                        print("You pull the "+target.name+" out of your backpack and drop it. "
+                              +"Your backpack is empty.")
         if inp == "close inventory":
             val = True
             return ("You zip up your backpack.\n")
@@ -94,6 +138,41 @@ def check_inven(player):
             print("[not a valid target]")
 
 
+# To -GET_CONTENTS_STR- for the contents of an Openable...
+def get_contents_str(openable):
+    """Take an Openable and return a string of all unhidden objects,
+    and a hidden object description string, both in one 'contents' string.
+
+    Openable -> string"""
+
+    obj_str = ""
+    objs_str = ""
+    hid_str = ""
+    openable_unhid_objs = []
+    for obj in openable.objs:
+        if (isinstance(obj, Hidden) and obj.was_revealed == True) \
+           or isinstance(obj, Hidden) == False:
+            openable_unhid_objs.append(obj)
+        else:
+            hid_str += " "+obj.pre_reveal_desc
+    for obj in openable_unhid_objs:
+        obj_str = obj.art+obj.name
+        if len(openable_unhid_objs) == 1:
+            objs_str += obj_str
+        elif len(openable_unhid_objs) == 2:
+            if obj == openable_unhid_objs[-1]:
+                objs_str += " and "+obj_str
+            else:
+                objs_str += obj_str
+        else:
+            if obj == openable_unhid_objs[-1]:
+                objs_str += "and "+obj_str
+            else:
+                objs_str += obj_str+", "
+
+    return objs_str+"."+hid_str
+
+# Generate each possible -GO_DEEPER ACTION-...
 def action(go_deeper):
     """List the possible actions in the Go_Deeper.
 
@@ -101,7 +180,7 @@ def action(go_deeper):
 
     opt_str = ""
 
-    # For all OPENABLES...
+    # List all common -OPENABLE ACTIONS-...
     if isinstance(go_deeper, Openable):
         if go_deeper.objs != "":
             for obj in go_deeper.objs:
@@ -114,7 +193,7 @@ def action(go_deeper):
         else:
             opt_str += " - ['close "+go_deeper.name+"']"
     
-    # FRONT_DOOR actions...
+    # List -FRONT_DOOR ACTIONS-...
     if go_deeper == front_door:
         if front_door.can_examine == True:
             opt_str += "\n - ['look through peephole']"
@@ -127,6 +206,7 @@ def action(go_deeper):
     return opt_str
 
 
+# Carry out a -GO_DEEPER REACTION-...
 def reaction(go_deeper, inp):
     """Carry out what the action causes.
 
@@ -134,26 +214,29 @@ def reaction(go_deeper, inp):
 
     val = "invalid"
 
-    # If the command is to TAKE an object...
+    # If the command is to -GO_DEEPER TAKE- an object...
     if inp.lower().startswith("take"):
-        target_obj = "lol"
+        target = "lol"
         val = True
         for obj in obj_list:
             if obj.name.lower() == inp[5:].lower().strip("."):
-                target_obj = obj
-                if target_obj not in go_deeper.objs:
+                target = obj
+                if target not in go_deeper.objs:
                     val = "object not here"
-        if target_obj.was_examined == False:
+        if target.was_examined == False:
             val = "not examined"
-        if target_obj == "lol":
+        if target == "lol":
             val = "invalid target"
         if val == True:
-            mads.inven.append(target_obj)
-            go_deeper.objs.remove(target_obj)
-            target_obj.loc = "mads_inven"
-            print("You take the "+target_obj.name+" and slip it in your backpack.\n")
+            mads.inven.append(target)
+            go_deeper.objs.remove(target)
+            target.loc = "mads_inven"
+            if target.name[0].isupper():
+                print("You take "+target.name+" and slip it in your backpack.\n")
+            else:
+                print("You take the "+target.name+" and slip it in your backpack.\n")
 
-    # FRONT_DOOR reactions...
+    # Carry out -FRONT_DOOR REACTIONS-...
     if go_deeper == front_door:
         if inp.lower() == "open front door":
             val = True
@@ -186,7 +269,7 @@ def reaction(go_deeper, inp):
             front_door_lock.desc = "It's unlocked."
             print("You fit the key into the lock and unlock the door.\n")
 
-    # AIDANS_SINK_CAB reactions...
+    # Carry out -AIDANS_SINK_CAB REACTIONS-...
     if go_deeper == aidans_sink_cab:
         if inp.lower() == "open sink cabinet":
             val = True
@@ -194,39 +277,11 @@ def reaction(go_deeper, inp):
             aidans_sink_cab.can_examine = True
             aidans_sink_cab.desc = "It's open."
             if aidans_sink_cab.objs != []:
-                obj_str = ""
-                objs_str = ""
-                hid_str = ""
-                hid_num = 0
-                go_deeper_unhid_objs = []
-                for obj in go_deeper.objs:
-                    if (isinstance(obj, Hidden) and obj.was_revealed == True) \
-                       or isinstance(obj, Hidden) == False:
-                        go_deeper_unhid_objs.append(obj)
-                    else:
-                        hid_str += " "+obj.pre_reveal_desc
-                for obj in go_deeper_unhid_objs:
-                    #if isinstance(obj, Hidden) and obj.was_revealed == False:
-                    #    obj_str = ""
-                    #    hid_str += " "+obj.pre_reveal_desc
-                    #else:
-                    obj_str = obj.art+obj.name
-                    if len(go_deeper_unhid_objs) == 1:
-                        objs_str += obj_str
-                    elif len(go_deeper_unhid_objs) == 2:
-                        if obj == go_deeper_unhid_objs[-1]:
-                            objs_str += " and "+obj_str
-                        else:
-                            objs_str += obj_str
-                    else:
-                        if obj == go_deeper_unhid_objs[-1]:
-                            objs_str += "and "+obj_str
-                        else:
-                            objs_str += obj_str+", "
+                contents_str = get_contents_str(aidans_sink_cab)
                 print("You pull both handles and swing the cabinet doors open.\n"
-                      +"Inside, you see "+objs_str+"."+hid_str+"\n")
+                      +"Inside, you see "+contents_str+"\n")
             else:
-                print("You pull both handles and swing the cabinet doors open."
+                print("You pull both handles and swing the cabinet doors open. "
                       +"It's empty.\n")
         if inp.lower() == "close sink cabinet":
             val = True
@@ -235,8 +290,29 @@ def reaction(go_deeper, inp):
             aidans_sink_cab.desc = "It's a little beat up."
             print("You gently swing the doors shut.\n")
 
+    # Carry out -BLACKS_DESK REACTIONS-...
+    if go_deeper == blacks_desk:
+        if inp.lower() == "open desk":
+            val = True
+            blacks_desk.try_open()
+            blacks_desk.can_examine = True
+            blacks_desk.desc = "It's made of some dark wood, and looks polished. The drawer is hanging open."
+            if blacks_desk.objs != []:
+                contents_str = get_contents_str(blacks_desk)
+                print("You pull the handle of the drawer and slide it open.\n"
+                      +"Inside, you see "+contents_str+"\n")
+            else:
+                print("You pull the handle of the drawer and slide it open. It's empty.\n")
+        if inp.lower() == "close desk":
+            val = True
+            blacks_desk.close()
+            blacks_desk.can_examine = False
+            blacks_desk.desc = "It's made of some dark wood, and looks polished. There's a drawer."
+            print("You push the drawer shut with a muffled click.\n")
     return val
 
+
+# To enter the -GO_DEEPER- options loop...
 def go_deeper(go_deeper):
     """Go into the options loop for the given Go_Deeper.
 
@@ -296,11 +372,11 @@ def go_deeper(go_deeper):
 
         val = "invalid"
 
-        # If the command is a GO_DEEPER ACTION...
+        # If the command is for a Go_Deeper that -HAS ACTION-...
         if go_deeper.has_action == True:
             val = reaction(go_deeper, inp)
-
-        # If the command is to EXAMINE an object or trait...
+            
+        # If the command is to -GO_DEEPER EXAMINE- an object or trait...
         if inp.lower().startswith("examine"):
             target = "lol"
             val = True
@@ -332,11 +408,11 @@ def go_deeper(go_deeper):
                         print(target.describe())
                         print("")
 
-        # If the command is to GO BACK...
+        # If the command is to -GO_DEEPER GO BACK-...
         if inp == "go back":
             break
         
-        # If the command is INVALID...
+        # If the command is -GO_DEEPER INVALID-...
         if val == "invalid":
             print("[not a valid command]")
         if val == "object not here":
@@ -347,6 +423,7 @@ def go_deeper(go_deeper):
     return ("You turn away from the "+go_deeper.name+".\n")
 
 
+# To enter the -UNLIT- options loop...
 def unlit(unlit):
     """Describe the Unlit Room, and go into the options loop.
 
@@ -360,14 +437,15 @@ def unlit(unlit):
 
         if mads.loc.is_lit == True:
             break
-        
+
+        # List -UNLIT ACTIONS-...
         if val == True:
             if mads.inven != []:
                 print(" - ['check inventory']")
-            if mads.loc.has_light_source == True:
-                print(" - ['flip light switch']")
             if flashlight in mads.inven:
                 print(" - ['use flashlight']")
+            if mads.loc.has_light_source == True:
+                print(" - ['flip light switch']")
             print(" - ['go back']")
 
         val = "invalid"
@@ -375,20 +453,12 @@ def unlit(unlit):
         inp = input("\n")
         print("")
 
+        # If the command is to -UNLIT CHECK- the inventory-
         if inp == "check inventory":
             val = True
             print(check_inven(mads))
-        
-        if inp == "flip light switch":
-            val = True
-            mads.loc.can_describe = True
-            mads.loc.is_lit = True
-            print("Feeling around on the wall, you find a light switch and flip it on.")
-            print("\nLight floods the room. "+mads.loc.desc)
-            print(mads.loc.describe_contents())
-            print(mads.loc.describe_rooms())
-            break
-        
+
+        # If the command is to -USE FLASHLIGHT-...
         if inp == "use flashlight":
             val = True
             flashlight.turn_on()
@@ -400,6 +470,18 @@ def unlit(unlit):
             print(mads.loc.describe_rooms())
             break
 
+        # If the command is to -FLIP LIGHT SWITCH-...
+        if inp == "flip light switch":
+            val = True
+            mads.loc.can_describe = True
+            mads.loc.is_lit = True
+            print("Feeling around on the wall, you find a light switch and flip it on.")
+            print("\nLight floods the room. "+mads.loc.desc)
+            print(mads.loc.describe_contents())
+            print(mads.loc.describe_rooms())
+            break
+
+        # If the command is to -UNLIT GO BACK-...
         if inp == "go back":
             val = True
             mads.loc = mads.prev_loc
@@ -407,6 +489,7 @@ def unlit(unlit):
             print(mads.loc.describe())
             break
 
+        # If the command is -UNLIT INVALID-...
         if val == "invalid":
             print("[not a valid command]")
 
@@ -417,10 +500,8 @@ def unlit(unlit):
 
 
 
-######################
-######MAIN##LOOP######
-######################
 
+# The -ENTRY LOOP- of the game...
 print("""You stand before a house. Within this house... There are many dark and
 painful things that lurk. If you choose to enter, you may never reemerge - and
 if you do... you will not be the same.
@@ -463,6 +544,7 @@ The door eases to a shut behind you of its own accord.
 
 val = True
 
+# The -MAIN LOOP- of the game...
 while True:
 
     if val == "turn back":
@@ -470,7 +552,7 @@ while True:
     
     if val == True:
         
-        # List all the valid options...
+        # List all the valid -MAIN ACTIONS-...
         for obj in obj_list:
             if obj.loc == "in_use":
                 print(" - ['put away "+obj.name+"']")
@@ -518,8 +600,7 @@ while True:
                 if room_str == "":
                     room_str += room
                 else:
-                    room_str += ", "+room
-                
+                    room_str += ", "+room                
         print(" - ['go to ROOM']"+" ( "+room_str+" )")
 
 
@@ -529,7 +610,27 @@ while True:
 
     val = "invalid"
 
-    # If the command is to TAKE an object...
+    # If the command is to -PUT AWAY- an object...
+    if inp.lower().startswith("put away"):
+        val = True
+        target = "lol"
+        for obj in obj_list:
+            if obj.name.lower() == inp[9:].lower().strip("."):
+                target = obj
+                if target.loc != "in_use":
+                    val = "invalid"
+        if target == "lol":
+            val = "invalid target"
+        if val == True:
+            target.loc = "mads_inven"
+            mads.inven.append(target)
+            if isinstance(target, On_or_Off):
+                target.is_on = False
+            print("You put the "+target.name+" back into your backpack.\n")
+            if isinstance(mads.loc, Unlit):
+                print(unlit(mads.loc))
+
+    # If the command is to -MAIN TAKE- an object...
     if inp.lower().startswith("take"):
         target_obj = "lol"
         val = True
@@ -550,12 +651,12 @@ while True:
             target_obj.loc = "mads_inven"
             print("You take the "+target_obj.name+" and slip it in your backpack.\n")
     
-    # If the command is to CHECK the inventory...
+    # If the command is to -MAIN CHECK- the inventory...
     if inp.lower().startswith("check"):
         val = True
         print(check_inven(mads))    
 
-    # If the command is to EXAMINE an object or character...
+    # If the command is to -MAIN EXAMINE- an object or character...
     if inp.lower().startswith("examine"):
         target = "lol"
         val = True
@@ -579,7 +680,7 @@ while True:
                 print(target.desc+"\n")
                 print(go_deeper(target))
 
-    # If the command is to TALK to a character...
+    # If the command is to -TALK- to a character...
     if inp.lower().startswith("talk to"):
         val = True
         target_pers = "lol"
@@ -593,27 +694,7 @@ while True:
         if val == True:
             target_pers.talk()
  
-    # If the command is to PUT AWAY an object...
-    if inp.lower().startswith("put away"):
-        val = True
-        target = "lol"
-        for obj in obj_list:
-            if obj.name.lower() == inp[9:].lower().strip("."):
-                target = obj
-                if target.loc != "in_use":
-                    val = "invalid"
-        if target == "lol":
-            val = "invalid target"
-        if val == True:
-            target.loc = "mads_inven"
-            mads.inven.append(target)
-            if isinstance(target, On_or_Off):
-                target.is_on = False
-            print("You put the "+target.name+" back into your backpack.\n")
-            if isinstance(mads.loc, Unlit):
-                print(unlit(mads.loc))
-
-    # If the command is GO TO a room...
+    # If the command is -GO TO- a room...
     if inp.lower().startswith("go to"):
         target_room = "lol"
         val = True
@@ -649,7 +730,7 @@ while True:
                     else:
                         print(unlit(mads.loc))
     
-    # If an INVALID command was entered...
+    # If the command is -MAIN INVALID-...
     if val != True:
         if val == "invalid":
             print("[not a valid command]")
