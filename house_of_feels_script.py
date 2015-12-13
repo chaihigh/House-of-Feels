@@ -54,7 +54,7 @@ for openable in obj_list:
 
         
 # To enter the -CHECK_INVEN- loop...
-def check_inven(player):
+def check_inven(player, loop):
     """Print the contents of the Player's inventory, and go into the
     options loop.
 
@@ -75,7 +75,8 @@ def check_inven(player):
                     else:
                         inven_str += ", "+obj.name
                 print(" - ['examine OBJECT']"+" ( "+inven_str+" )")
-                print(" - ['drop OBJECT']")
+                if loop != "go_deeper":
+                    print(" - ['drop OBJECT']")
             print(" - ['close inventory']")
 
         print("")
@@ -96,7 +97,7 @@ def check_inven(player):
                 val = "invalid examine target"
             if val == True:
                 print(target.describe())
-        if inp.lower().startswith("drop"):
+        if inp.lower().startswith("drop") and loop != "go_deeper":
             val = True
             target = "lol"
             for obj in player.inven:
@@ -669,7 +670,10 @@ def go_deeper(go_deeper):
     while True:
         
         if val == True:
-        
+
+            if mads.inven != []:
+                print(" - ['check inventory']")
+
             if go_deeper.has_action == True:
                 if go_deeper_actions(go_deeper) != "":
                     print(go_deeper_actions(go_deeper))
@@ -684,12 +688,18 @@ def go_deeper(go_deeper):
 
         val = "invalid"
 
-        # If the command is for a Go_Deeper that -HAS ACTION-...
-        if go_deeper.has_action == True:
-            val = go_deeper_reactions(go_deeper, inp)
-        if val != True:
-            if isinstance(go_deeper, Openable):
-                val = openable_reactions(go_deeper, inp)
+        # If the command is to -GO_DEEPER CHECK_INVEN-...
+        if inp.lower() == "check inventory":
+            val = True
+            print(check_inven(mads, "go_deeper"))
+        else:
+            
+            # If the command is for a Go_Deeper that -HAS ACTION-...
+            if go_deeper.has_action == True:
+                val = go_deeper_reactions(go_deeper, inp)
+            if val != True:
+                if isinstance(go_deeper, Openable):
+                    val = openable_reactions(go_deeper, inp)
             
         # If the command is to -GO_DEEPER EXAMINE- an object or trait...
         if isinstance(go_deeper, Openable) == False:
@@ -701,7 +711,7 @@ def go_deeper(go_deeper):
                 else:
                     for trait in go_deeper.traits:
                         if isinstance(trait, Hidden_Trait) and \
-                           trait.hid_name.lower() == inp[8:].lower():
+                            trait.hid_name.lower() == inp[8:].lower():
                             if trait.was_revealed == False:
                                 target = trait
                         elif isinstance(trait, Hidden_Trait) and \
@@ -765,7 +775,7 @@ def unlit(unlit):
         # If the command is to -UNLIT CHECK- the inventory-
         if inp == "check inventory":
             val = True
-            print(check_inven(mads))
+            print(check_inven(mads, "unlit"))
 
         # If the command is to -USE FLASHLIGHT-...
         if inp == "use flashlight":
@@ -963,7 +973,7 @@ while True:
     # If the command is to -MAIN CHECK- the inventory...
     if inp.lower().startswith("check"):
         val = True
-        print(check_inven(mads))    
+        print(check_inven(mads, "main"))    
 
     # If the command is to -MAIN EXAMINE- an object or character...
     if inp.lower().startswith("examine"):
