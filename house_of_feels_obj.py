@@ -29,24 +29,25 @@ tv_stand = Object("TV stand", "It's a dark wooden TV stand.", "a ", \
                   living_room)
 tv = Object("television", "It's a medium-sized, flatscreen TV.", "a ", \
             living_room)
-front_door = Lockable("front door", "It's closed. It has a peephole and a lock.", \
-                      "the ", [peephole, front_door_lock], [], living_room, \
-                      False, False, True, False, True)
+front_door = Lockable("front door", "It's closed, but unlocked.", \
+                      "It's open.", "It's closed, but unlocked.", \
+                      "It's locked.", "the ", [peephole], [], living_room, \
+                      False, False, False, True, False, "ext", False)
 
 
 # In the -WEST HALLWAY-...
-photo = Go_Deeper("photo", "It's a nature shot. There's a tree on a hill, overlooking a lake.", \
-                  "a ", [tree, lake], west_hall, False, False, False)
+photo = Go_Deeper("photo", "It's a nature shot.", \
+                  "a ", [tree, lake, bird], west_hall, False, False, False, True)
 
 
 # In -AIDAN'S BATH-...
 aidans_sink = Object("sink", "A slow but continuous drip falls from it.", "a ", aidans_bath)
-aidans_sink_cab = Openable("sink cabinet", "It's a little beat up.", "the ", [], [], aidans_bath)
-                           #False, False, True, False, False)
+aidans_sink_cab = Openable("sink cabinet", "It's a little beat up.", "The doors are hanging open.", "It's a little beat up.", "the ", [], [], aidans_bath)
 
 #In -BLACKWELL'S ROOM-...
 blacks_desk = Openable("desk", "It's made of some dark wood, and looks polished. There's a drawer.", \
-                       "a ", [], [], blacks_room)
+                       "It's made of some dark wood, and looks polished. The drawer is hanging open.", \
+                       "It's made of some dark wood, and looks polished. There's a drawer.", "a ", [staple, stain, smiley_face, sticky_note], [], blacks_room, False, False, False, True)
 
 
 
@@ -75,17 +76,24 @@ broom = Object("broom", "It's a broom.", "a ", north_hall, True)
 # Originating from an -OPENABLE-...
 
 # From -AIDANS_SINK_CAB-...
-razor = Hidden("razor blade", "silver glint", "As you look closer, you notice some dried up flecks of brownish-red on the blade.", \
+razor = Hidden_Object("razor blade", "silver glint", "As you look closer, you notice some dried up flecks of brownish-red on the blade.", \
                "You pull at it until something pops out of the crack - a razor blade.", \
-               "a ", "a ", "There's a silver glint wedged in a loose seam in the corner.", aidans_sink_cab, True)
+               "a ", "a ", " There's a silver glint wedged in a loose seam in the corner.", aidans_sink_cab, True)
 shav_cream = Object("shaving cream", "It's half empty.", "a bottle of ", aidans_sink_cab, True)
 hand_towel = Object("hand towel", "It's gray, and a little worn.", "a ", aidans_sink_cab, True)
 
 # From -BLACKS_DESK-...
 blacks_egun = On_or_Off("Blackwell's e-gun", "It's a little bulkier than a handgun. It's quite heavy.", \
                         "", blacks_desk, True)
-
+note_pad = Object("note pad", "Something is written on it in an elegant scrawl.", "a ", blacks_desk, True, False, True)
+receipt = Hidden_Object("receipt", "crumpled wad", "It's from a coffee shop, for a bagel and an iced tea.", \
+                 "You smooth out the paper and see that it's a receipt.", "a ", "a ", " There's a crumpled wad on the desk.", \
+                 blacks_desk, True, False, False, True)
+penny = Hidden_Object("penny", "copper thing", "It's shiny.", "You look closer - it's a penny.", "a ", "a ", \
+                      " Something copper in a corner of the drawer catches your eye.", blacks_desk, True, \
+                      False, False, False)
 
 obj_list = [front_door, living_room_couch, tv_stand, tv, photo, aidans_sink, \
             aidans_sink_cab, bottle, book, flashlight, front_door_key, razor, \
-            broom, shav_cream, hand_towel, blacks_desk, blacks_egun]
+            broom, shav_cream, hand_towel, blacks_desk, blacks_egun, note_pad, \
+            receipt, penny]

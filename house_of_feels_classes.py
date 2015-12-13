@@ -17,12 +17,13 @@ from house_of_feels_bee import *
 # -PERSON-
     # -PLAYER-
 # -OBJECT-
-    # -HIDDEN-
+    # -HIDDEN_OBJECT-
     # -ON_OR_OFF-
     # -GO_DEEPER-
         # -OPENABLE-
             # -LOCKABLE-
 # -TRAIT-
+    # -HIDDEN_TRAIT-
 
 
 # Define a -HOUSE-...
@@ -327,13 +328,15 @@ class Object:
     """Create an Object.
 
     attributes: name (string), description (string), article (string),
-    location (Room or Go_Deeper)[, movable (boolean), was_examined (boolean)]"""
+    location (Room or Go_Deeper)[, movable (boolean), was_examined (boolean),
+    is_external (bool)]"""
 
-    def __init__(self, name, desc, art, loc, movable=False, was_examined=False):
+    def __init__(self, name, desc, art, loc, movable=False, was_examined=False, \
+                 is_external=False):
         """Store the name, description, and location of the Object.
 
         Object, string, string, string, Room or Go_Deeper[, bool,
-        bool] -> None"""
+        bool, bool] -> None"""
 
         self.name = name
         self.desc = desc
@@ -341,6 +344,7 @@ class Object:
         self.loc = loc
         self.movable = movable
         self.was_examined = was_examined
+        self.is_external = is_external
 
     def describe(self):
         """Describe the Object.
@@ -351,24 +355,24 @@ class Object:
         return self.desc
 
 
-# Define a -HIDDEN- Object...
-class Hidden(Object):
+# Define a -HIDDEN_OBJECT-...
+class Hidden_Object(Object):
     """Create an Object that is Hidden before being examined.
 
     attributes: name (string), hidden name (string), description (string),
     hidden description (string), article (string), hidden article (string),
-    pre-reveal description (string), location (Room or Go_Deeper)[, \
-    movable (boolean), was_examined (boolean)]"""
+    pre-reveal description (string), location (Room or Go_Deeper)[,
+    movable (boolean), was_examined (boolean), is_external (bool)]"""
 
     def __init__(self, name, hid_name, desc, hid_desc, art, hid_art, \
-                 pre_reveal_desc, loc, movable=False, was_revealed=False, \
-                 was_examined=False):
+                 pre_reveal_desc, loc, movable=False, \
+                 was_revealed=False, was_examined=False, is_external=False):
         """Store the attributes.
 
         Object, string, string, string, string, string, string, string,
-        Room or Go_Deeper[, bool, bool] -> None"""
+        Room or Go_Deeper[, bool, bool, bool] -> None"""
 
-        Object.__init__(self, name, desc, art, loc, movable, was_examined)
+        Object.__init__(self, name, desc, art, loc, movable, was_examined, is_external)
         self.hid_name = hid_name
         self.hid_desc = hid_desc
         self.hid_art = hid_art
@@ -376,7 +380,7 @@ class Hidden(Object):
         self.was_revealed = was_revealed
 
     def describe(self):
-        """Describe the Hidden Object.
+        """Describe the Hidden_Object.
 
         Hidden -> string"""
 
@@ -394,15 +398,15 @@ class On_or_Off(Object):
 
     attributes: name (string), description (string), article (string),
     location (Room or Go_Deeper)[, movable (boolean), was_examined (boolean),
-    is_on (boolean)]"""
+    is_external (bool), is_on (boolean)]"""
 
     def __init__(self, name, desc, art, loc, movable=False, \
-                 was_examined=False, is_on=False):
+                 was_examined=False, is_external=False, is_on=False):
         """Store the attributes.
 
-        On_or_Off, string, string, string, Rooom[, bool, bool, bool] -> None"""
+        On_or_Off, string, string, string, Rooom[, bool, bool, bool, bool] -> None"""
 
-        Object.__init__(self, name, desc, art, loc, movable, was_examined)
+        Object.__init__(self, name, desc, art, loc, movable, was_examined, is_external)
         self.is_on = is_on
 
     def turn_on(self):
@@ -420,16 +424,16 @@ class Go_Deeper(Object):
 
     attributes: name (string), description (string), article (string),
     traits (list of Objects), location (Room or Go_Deeper)[, movable (boolean),
-    was_examined (boolean), has_action (boolean)]"""
+    was_examined (boolean), is_external (bool), has_action (boolean)]"""
 
     def __init__(self, name, desc, art, traits, loc, movable=False, \
-                 was_examined=False, has_action=False):
+                 was_examined=False, is_external=False, has_action=False):
         """Store the attributes.
 
         Go_Deeper, string, string, string, traits, Room[, bool, bool,
-        bool] -> None"""
+        bool, bool] -> None"""
 
-        Object.__init__(self, name, desc, art, loc, movable, was_examined)
+        Object.__init__(self, name, desc, art, loc, movable, was_examined, is_external)
         self.traits = traits
         self.has_action = has_action
 
@@ -438,7 +442,7 @@ class Go_Deeper(Object):
 
         Go_Deeper -> None"""
 
-        return "go_deeper"
+        return self.desc
 
     def go_deeper(self):
         """Go into the options loop for this Go_Deeper.
@@ -498,30 +502,35 @@ class Go_Deeper(Object):
 class Openable(Go_Deeper):
     """Define an Openable Go_Deeper Object.
 
-    attributes: name (string), description (string), article (string),
-    traits (list of Traits), objects (list of Object),
-    location (Room or Go_Deeper)[, movable (boolean), was_examined (boolean),
-    has_action (boolean), is_open (boolean), can_examine (bool)]"""
+    attributes: name (string), description (string), open description (str),
+    closed description (string), article (string), traits (list of Traits),
+    objects (list of Object), location (Room or Go_Deeper)[, movable (boolean),
+    was_examined (boolean), is_external (bool), has_action (boolean),
+    is_open (boolean), can_examine_contents (bool)]"""
 
-    def __init__(self, name, desc, art, traits, objs, loc, movable=False, \
-                 was_examined=False, has_action=True, is_open=False, \
-                 can_examine=False):
+    def __init__(self, name, desc, open_desc, clos_desc, art, traits, objs, \
+                 loc, movable=False, was_examined=False, is_external=False, \
+                 has_action=False, is_open=False, can_examine_contents="ext"):
         """Store the attributes.
 
-        Openable, string, string, string, list of Traits, list of Objects,
-        Room or Go_Deeper[, bool, bool, bool, bool, bool] -> None"""
+        Openable, string, string, string, string, string, list of Traits,
+        list of Objects, Room or Go_Deeper[, bool, bool, bool, bool,
+        bool, bool] -> None"""
 
         Go_Deeper.__init__(self, name, desc, art, traits, loc, movable, \
-                           was_examined, has_action)
+                           was_examined, is_external, has_action)
         self.objs = objs
+        self.open_desc = open_desc
+        self.clos_desc = clos_desc
         self.is_open = is_open
-        self.can_examine = can_examine
+        self.can_examine_contents = can_examine_contents
 
     def try_open(self):
         """Attempt to open the Openable.
 
         Openable -> bool"""
 
+        self.desc = self.open_desc
         self.is_open = True
 
         return True
@@ -531,6 +540,7 @@ class Openable(Go_Deeper):
 
         Openable -> None"""
 
+        self.desc = self.clos_desc
         self.is_open = False
 
 
@@ -538,22 +548,27 @@ class Openable(Go_Deeper):
 class Lockable(Openable):
     """Define Lockable Openable Go_Deeper Object.
 
-    attributes: name (string), description (string), article (string),
+    attributes: name (string), description (string), open description (string),
+    closed description (string), locked description (string), article (string),
     traits (list of Traits), objects (list of Objects),
     location (Room or Go_Deeper)[, movable (boolean), was_examined (boolean),
-    has_action (boolean), is_open (boolean), can_examine (bool),
-    is_locked (bool)]"""
+    is_external (bool), has_action (boolean), is_open (boolean),
+    can_examine (bool), is_locked (bool)]"""
 
-    def __init__(self, name, desc, art, traits, objs, loc, movable=False, \
-                 was_examined=False, has_action=True, is_open=False, \
-                 can_examine=False, is_locked=False):
+    def __init__(self, name, desc, open_desc, clos_desc, lock_desc, art, \
+                 traits, objs, loc, movable=False, was_examined=False, \
+                 is_external=False, has_action=False, is_open=False, \
+                 can_examine_contents="ext", is_locked=False):
         """Store the attributes.
 
-        Openable, string, string, string, list of Traits, list of Objects,
-        Room or Go_Deeper[, bool, bool, bool, bool, bool, bool] -> None"""
+        Openable, string, string, string, string, string, list of Traits,
+        list of Objects, Room or Go_Deeper[, bool, bool, bool, bool, bool,
+        bool, bool] -> None"""
 
-        Openable.__init__(self, name, desc, art, traits, objs, loc, movable, \
-                          was_examined, has_action, is_open, can_examine)
+        Openable.__init__(self, name, desc, open_desc, clos_desc, art, traits, \
+                          objs, loc, movable, was_examined, is_external, \
+                          has_action, is_open, can_examine_contents)
+        self.lock_desc = lock_desc
         self.is_locked = is_locked
 
     def try_open(self):
@@ -563,6 +578,7 @@ class Lockable(Openable):
 
         if self.is_locked == False:
             self.is_open = True
+            self.desc = self.open_desc
             return True
         else:
             return False
@@ -572,6 +588,7 @@ class Lockable(Openable):
 
         Lockable -> None"""
 
+        self.desc = self.lock_desc
         self.is_locked = True
 
     def unlock(self):
@@ -579,6 +596,7 @@ class Lockable(Openable):
 
         Lockable -> None"""
 
+        self.desc = self.clos_desc
         self.is_locked = False
 
 
@@ -587,16 +605,20 @@ class Lockable(Openable):
 class Trait:
     """Create a Trait.
 
-    attributes: name (string), description (string), article (string)"""
+    attributes: name (string), description (string), article (string),
+    is_external (boolean)"""
 
-    def __init__(self, name, desc, art):
-        """Store the Trait's name, description, and article.
+    def __init__(self, name, desc, art, non_hid_desc, is_external=True):
+        """Store the Trait's name, description, article, and description used
+        when describing its Go_Deeper, and whether it is an external Trait.
 
-        Trait, string, string, string -> None"""
+        Trait, string, string, string, string, boolean -> None"""
 
         self.name = name
         self.desc = desc
         self.art = art
+        self.non_hid_desc = non_hid_desc
+        self.is_external = is_external
 
     def describe(self):
         """Describe the Trait.
@@ -605,6 +627,42 @@ class Trait:
 
         return self.desc
 
+
+# Define a -HIDDEN_TRAIT-...
+class Hidden_Trait(Trait):
+    """Create a Hidden Trait.
+
+    attributes: name (string), hidden name (string), description (string),
+    hidden description (string), article (string), hidden article (string),
+    pre-reveal description (string), post-reveal description (string)[,
+    is_external (bool)]"""
+
+    def __init__(self, name, hid_name, desc, hid_desc, art, hid_art, \
+                 pre_reveal_desc, post_reveal_desc, was_revealed=False, \
+                 is_external=True):
+        """Store the attributes.
+
+        Object, string, string, string, string, string, string, string,
+        string[, bool] -> None"""
+
+        Trait.__init__(self, name, desc, art, is_external)
+        self.hid_name = hid_name
+        self.hid_desc = hid_desc
+        self.hid_art = hid_art
+        self.pre_reveal_desc = pre_reveal_desc
+        self.post_reveal_desc = post_reveal_desc
+        self.was_revealed = was_revealed
+
+    def describe(self):
+        """Describe the Hidden_Object.
+
+        Hidden -> string"""
+
+        if self.was_revealed == False:
+            self.was_revealed = True
+            return self.hid_desc
+        else:
+            return self.desc
 
 
 

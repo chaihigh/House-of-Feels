@@ -137,178 +137,506 @@ def check_inven(player):
         if val == "invalid examine target":
             print("[not a valid target]")
 
+# -GET-UNHID_EXT_OBJS-...
+def get_unhid_ext_objs(openable):
+    """Determine if there are any external Objects in an Openable
+    that are unhidden.
 
-# To -GET_CONTENTS_STR- for the contents of an Openable...
-def get_contents_str(openable):
+    Openable -> boolean"""
+
+    unhid_ext_objs = []
+    
+    for obj in openable.objs:
+        if obj.is_external == True:
+            if isinstance(obj, Hidden_Object) == False:
+                unhid_ext_objs.append(obj)
+            else:
+                if obj.was_revealed == True:
+                    unhid_ext_objs.append(obj)
+
+    return unhid_ext_objs
+
+
+# -GET_UNHID_INT_OBJS-...
+def get_unhid_int_objs(openable):
+    """Determine if there are any internal Objects in an Openable
+    that are unhidden.
+
+    Openable -> boolean"""
+
+    unhid_int_objs = []
+    
+    for obj in openable.objs:
+        if obj.is_external == False:
+            if isinstance(obj, Hidden_Object) == False:
+                unhid_int_objs.append(obj)
+            else:
+                if obj.was_revealed == True:
+                    unhid_int_objs.append(obj)
+
+    return unhid_int_objs
+
+
+# -GET_EXT_TRAITS-...
+def get_ext_traits(go_deeper):
+    """Take a Go_Deeper and return a string describing the Go_Deeper's external
+    traits and a string listing its external traits.
+
+    Go_Deeper -> string"""
+
+    ext_traits_desc_str = ""
+    ext_traits_list_str = ""
+
+    for trait in go_deeper.traits:
+        if trait.is_external == True:
+            if isinstance(trait, Hidden_Trait):
+                if trait.was_revealed == False:
+                    ext_traits_desc_str += trait.pre_reveal_desc
+                    ext_traits_list_str += ", "+trait.hid_name
+                else:
+                    ext_traits_desc_str += trait.post_reveal_desc
+                    ext_traits_list_str += ", "+trait.name
+            else:
+                ext_traits_desc_str += trait.non_hid_desc
+                ext_traits_list_str += ", "+trait.name
+
+    return (ext_traits_desc_str, ext_traits_list_str)
+
+# -GET_INT_TRAITS-...
+def get_int_traits(go_deeper):
+    """Take a Go_Deeper and return a string describing the Go_Deeper's internal
+    traits and a string listing its internal traits.
+
+    Go_Deeper -> string"""
+
+    int_traits_desc_str = ""
+    int_traits_list_str = ""
+
+    for trait in go_deeper.traits:
+        if trait.is_external == False:
+            if isinstance(trait, Hidden_Trait):
+                if trait.was_revealed == False:
+                    int_traits_desc_str += trait.pre_reveal_desc
+                    int_traits_list_str += ", "+trait.hid_name
+                else:
+                    int_traits_desc_str += trait.post_reveal_desc
+                    int_traits_list_str += ", "+trait.name
+            else:
+                int_traits_desc_str += trait.non_hid_desc
+                int_traits_list_str += ", "+trait.name
+
+    return (int_traits_desc_str, int_traits_list_str)
+
+
+# To -GET_EXT_CONTENTS- for the contents of an Openable...
+def get_ext_contents(openable):
+    """wrongTake an Openable and return a string of all unhidden objects,
+    and a hidden object description string, both in one 'contents' string.
+
+    Openable -> string"""
+
+    ext_objs_desc_str = ""
+    hid_ext_objs_desc_str = ""
+    ext_objs_list_str = ""
+    openable_unhid_ext_objs = []
+
+    for obj in openable.objs:
+        if obj.is_external == True:
+            if (isinstance(obj, Hidden_Object) and obj.was_revealed == True) \
+               or isinstance(obj, Hidden_Object) == False:
+                openable_unhid_ext_objs.append(obj)
+            else:
+                hid_ext_objs_desc_str += obj.pre_reveal_desc
+                ext_objs_list_str += ", "+obj.hid_name
+
+    for obj in openable_unhid_ext_objs:
+        ext_objs_list_str += ", "+obj.name
+        if len(openable_unhid_ext_objs) == 1:
+            ext_objs_desc_str += obj.art+obj.name+"."
+        elif len(openable_unhid_ext_objs) == 2:
+            if obj == openable_unhid_ext_objs[-1]:
+                ext_objs_desc_str += " and "+obj.art+obj.name+"."
+            else:
+                ext_objs_desc_str += obj.art+obj.name
+        else:
+            if obj == openable_unhid_ext_objs[-1]:
+                ext_objs_desc_str += "and "+obj.art+obj.name+"."
+            else:
+                ext_objs_desc_str += obj.art+obj.name+", "
+
+    return (ext_objs_desc_str+hid_ext_objs_desc_str+get_ext_traits(openable)[0], \
+            ext_objs_list_str+get_ext_traits(openable)[1])
+
+
+# To -GET_INT_CONTENTS- for the contents of an Openable...
+def get_int_contents(openable):
     """Take an Openable and return a string of all unhidden objects,
     and a hidden object description string, both in one 'contents' string.
 
     Openable -> string"""
 
-    obj_str = ""
-    objs_str = ""
-    hid_str = ""
-    openable_unhid_objs = []
+    int_objs_desc_str = ""
+    hid_int_objs_desc_str = ""
+    int_objs_list_str = ""
+    openable_unhid_int_objs = []
+
     for obj in openable.objs:
-        if (isinstance(obj, Hidden) and obj.was_revealed == True) \
-           or isinstance(obj, Hidden) == False:
-            openable_unhid_objs.append(obj)
-        else:
-            hid_str += " "+obj.pre_reveal_desc
-    for obj in openable_unhid_objs:
-        obj_str = obj.art+obj.name
-        if len(openable_unhid_objs) == 1:
-            objs_str += obj_str
-        elif len(openable_unhid_objs) == 2:
-            if obj == openable_unhid_objs[-1]:
-                objs_str += " and "+obj_str
+        if obj.is_external == False:
+            if (isinstance(obj, Hidden_Object) and obj.was_revealed == True) \
+               or isinstance(obj, Hidden_Object) == False:
+                openable_unhid_int_objs.append(obj)
             else:
-                objs_str += obj_str
-        else:
-            if obj == openable_unhid_objs[-1]:
-                objs_str += "and "+obj_str
+                hid_int_objs_desc_str += obj.pre_reveal_desc
+                int_objs_list_str += ", "+obj.hid_name
+
+    for obj in openable_unhid_int_objs:
+        int_objs_list_str += ", "+obj.name
+        if len(openable_unhid_int_objs) == 1:
+            int_objs_desc_str += obj.art+obj.name+"."
+        elif len(openable_unhid_int_objs) == 2:
+            if obj == openable_unhid_int_objs[-1]:
+                int_objs_desc_str += " and "+obj.art+obj.name+"."
             else:
-                objs_str += obj_str+", "
+                int_objs_desc_str += obj.art+obj.name
+        else:
+            if obj == openable_unhid_int_objs[-1]:
+                int_objs_desc_str += "and "+obj.art+obj.name+"."
+            else:
+                int_objs_desc_str += obj.art+obj.name+", "
 
-    return objs_str+"."+hid_str
+    return (int_objs_desc_str+hid_int_objs_desc_str+get_int_traits(openable)[0], \
+            int_objs_list_str+get_int_traits(openable)[1])
 
-# Generate each possible -GO_DEEPER ACTION-...
-def action(go_deeper):
-    """List the possible actions in the Go_Deeper.
 
-    Go_Deeper -> string"""
+# -LOCKABLE_ACTIONS-...
+def lockable_actions(lockable):
+    """List command to lock a Lockable.
+
+    Lockable -> string"""
 
     opt_str = ""
 
-    # List all common -OPENABLE ACTIONS-...
-    if isinstance(go_deeper, Openable):
-        if go_deeper.objs != "":
-            for obj in go_deeper.objs:
-                if obj.was_examined == True and go_deeper.can_examine == True:
-                    opt_str += " - ['take "+obj.name+"']"
-        if opt_str != "":
-            opt_str += "\n"
-        if go_deeper.is_open == False:
-            opt_str += " - ['open "+go_deeper.name+"']"
-        else:
-            opt_str += " - ['close "+go_deeper.name+"']"
-    
-    # List -FRONT_DOOR ACTIONS-...
-    if go_deeper == front_door:
-        if front_door.can_examine == True:
-            opt_str += "\n - ['look through peephole']"
-            if front_door_key in mads.inven:
-                if front_door.is_locked == True:
-                    opt_str += "\n - ['unlock with small key']"
-                else:
-                    opt_str += "\n - ['lock with small key']"
+    if lockable == front_door:
+        key = front_door_key
+
+    if key in mads.inven:
+        if lockable.is_open == False:
+            if lockable.is_locked == True:
+                opt_str += "\n - ['unlock with "+key.name+"']"
+            else:
+                opt_str += "\n - ['lock with "+key.name+"']"
 
     return opt_str
 
 
-# Carry out a -GO_DEEPER REACTION-...
-def reaction(go_deeper, inp):
-    """Carry out what the action causes.
+# -LOCKABLE_REACTIONS-...
+def lockable_reactions(lockable, inp):
+    """Carry out a command for a Lockable.
 
-    Go_Deeper, string -> None"""
+    Lockable -> val"""
 
     val = "invalid"
 
-    # If the command is to -GO_DEEPER TAKE- an object...
+    if lockable == front_door:
+        key = front_door_key
+
+    if inp.lower().startswith("lock with"):
+        val = True
+        if key.name.lower() == inp[10:].lower() and lockable.is_open == False and \
+           lockable.is_locked == False:
+            lockable.lock()
+            print("You fit the key in the lock and turn - it's locked.\n")
+        else:
+            val = "invalid"
+    if inp.lower().startswith("unlock with"):
+        val = True
+        if key.name.lower() == inp[12:].lower() and lockable.is_open == False and \
+           lockable.is_locked == True:
+            lockable.unlock()
+            print("You fit the key in the lock and turn - it's unlocked.\n")
+        else:
+            val = "invalid"
+
+    return val
+
+
+# -OPENABLE_ACTIONS-...
+def openable_actions(openable):
+    """List possible commands for an Openable and carry out those commands.
+
+    Openable -> None"""
+
+    opt_str = ""
+
+    # List all common -OPENABLE ACTIONS-...
+    if openable.objs != "":
+        for obj in openable.objs:
+            if obj.was_examined == True and \
+               openable.can_examine_contents == "int" and \
+               obj.is_external == False:
+                opt_str += " - ['take "+obj.name+"']\n"
+        for obj in openable.objs:
+            if obj.was_examined == True and \
+               openable.can_examine_contents == "ext" and \
+                obj.is_external == True:
+                opt_str += " - ['take "+obj.name+"']\n"
+    if openable.is_open == False:
+        opt_str += " - ['open "+openable.name+"']"
+    else:
+        opt_str += " - ['close "+openable.name+"']"
+
+    if isinstance(openable, Lockable):
+        opt_str += lockable_actions(openable)
+
+    if openable.can_examine_contents == "ext":
+        opt_str += "\n - ['examine OBJECT'] ( "+openable.name+get_ext_contents(openable)[1]+" )"
+    else:
+        opt_str += "\n - ['examine OBJECT'] ( "+openable.name+get_int_contents(openable)[1]+" )"
+
+    return opt_str
+
+# Carry out -OPENABLE REACTIONS-...
+def openable_reactions(openable, inp):
+    """Carry out commands specific to Openables.
+
+    Openable -> None"""
+
+    val = "invalid"
+
+    if isinstance(openable, Lockable):
+        val = lockable_reactions(openable, inp)
+
+    # If the command is to -OPENABLE TAKE- an object...
     if inp.lower().startswith("take"):
         target = "lol"
         val = True
         for obj in obj_list:
             if obj.name.lower() == inp[5:].lower().strip("."):
                 target = obj
-                if target not in go_deeper.objs:
-                    val = "object not here"
-        if target.was_examined == False:
-            val = "not examined"
+                if target not in openable.objs:
+                    val = "invalid target"
+        if isinstance(target, Object) or isinstance(target, Hidden_Object):
+            if target.was_examined == False:
+                val = "not examined"
         if target == "lol":
             val = "invalid target"
         if val == True:
             mads.inven.append(target)
-            go_deeper.objs.remove(target)
+            openable.objs.remove(target)
             target.loc = "mads_inven"
             if target.name[0].isupper():
                 print("You take "+target.name+" and slip it in your backpack.\n")
             else:
                 print("You take the "+target.name+" and slip it in your backpack.\n")
 
+    # If the command is to -OPENABLE EXAMINE- an object or trait...
+    if inp.lower().startswith("examine"):
+        target = "lol"
+        val = True
+        openable_unhid_ext_objs = []
+        openable_unhid_int_objs = []
+        for obj in openable.objs:
+            if isinstance(obj, Hidden_Object):
+                if obj.was_revealed:
+                    if obj.is_external:
+                        openable_unhid_ext_objs.append(obj)
+                    else:
+                        openable_unhid_int_objs.append(obj)
+            else:
+                if obj.is_external:
+                    openable_unhid_ext_objs.append(obj)
+                else:
+                    openable_unhid_int_objs.append(obj)
+
+        if openable.name.lower() == inp[8:].lower():
+            target = openable
+            if openable.can_examine_contents == "ext":
+                if get_ext_contents(openable)[0] != "":
+                    if openable_unhid_ext_objs != []:
+                        print(openable.describe()+" On the "+openable.name+", you see "
+                              +get_ext_contents(openable)[0]+"\n")
+                    else:
+                        print(openable.describe()+get_ext_contents(openable)[0]+"\n")
+                else:
+                    print(openable.describe()+"\n")
+            else:
+                if get_int_contents(openable)[0] != "":
+                    if openable_unhid_int_objs != []:
+                        print(openable.describe()+" Inside, you see "
+                              +get_int_contents(openable)[0]+"\n")
+                    else:
+                        print(openable.describe()+get_int_contents(openable)[0]+"\n")                
+                else:
+                    print(openable.describe()+" It's empty.\n")
+        else:
+            for obj in openable.objs:
+                if isinstance(obj, Hidden_Object):
+                    if obj.was_revealed == False:
+                        if openable.can_examine_contents == "ext" and \
+                           obj.is_external == True:
+                            if obj.hid_name.lower() == inp[8:].lower():
+                                target = obj
+                        if openable.can_examine_contents == "int" and \
+                           obj.is_external == False:
+                            if obj.hid_name.lower() == inp[8:].lower():
+                                target = obj
+                    else:
+                        if openable.can_examine_contents == "ext" and \
+                           obj.is_external == True:
+                            if obj.name.lower() == inp[8:].lower():
+                                target = obj
+                        if openable.can_examine_contents == "int" and \
+                           obj.is_external == False:
+                            if obj.name.lower() == inp[8:].lower():
+                                target = obj
+                else:
+                    if openable.can_examine_contents == "ext" and \
+                       obj.is_external == True:
+                        if obj.name.lower() == inp[8:].lower():
+                            target = obj
+                    if openable.can_examine_contents == "int" and \
+                       obj.is_external == False:
+                        if obj.name.lower() == inp[8:].lower():
+                            target = obj
+            for trait in openable.traits:
+                if isinstance(trait, Hidden_Trait):
+                    if trait.was_revealed == False:
+                        if openable.can_examine_contents == "ext" and \
+                           trait.is_external == True:
+                            if trait.hid_name.lower() == inp[8:].lower():
+                                target = trait
+                        if openable.can_examine_contents == "int" and \
+                           trait.is_external == False:
+                            if trait.hid_name.lower() == inp[8:].lower():
+                                target = trait
+                    else:
+                        if openable.can_examine_contents == "ext" and \
+                           trait.is_external == True:
+                            if trait.name.lower() == inp[8:].lower():
+                                target = trait
+                        if openable.can_examine_contents == "int" and \
+                           trait.is_external == False:
+                            if trait.name.lower() == inp[8:].lower():
+                                target = trait
+                else:
+                    if openable.can_examine_contents == "ext" and \
+                       trait.is_external == True:
+                        if trait.name.lower() == inp[8:].lower():
+                            target = trait
+                    if openable.can_examine_contents == "int" and \
+                       trait.is_external == False:
+                        if trait.name.lower() == inp[8:].lower():
+                            target = trait
+            if target == "lol":
+                val = "invalid target"
+            if val == True:
+                print(target.describe()+"\n")
+
     # Carry out -FRONT_DOOR REACTIONS-...
-    if go_deeper == front_door:
+    if openable == front_door:
         if inp.lower() == "open front door":
             val = True
             if front_door.try_open() == True:
                 front_door.try_open()
-                front_door.can_examine = False
-                front_door.desc = "It's open."
+                front_door.can_examine_contents = "int"
                 print("You turn the handle and swing the door open.\n")
             else:
                 print("You try to turn the handle, but it's locked.\n")
         if inp.lower() == "close front door":
             val = True
             front_door.close()
-            front_door.can_examine = True
-            front_door.desc = "It's closed. It has a peephole and a lock."
+            front_door.can_examine_contents = "ext"
             print("You shut the door.\n")
-        if inp.lower() == "look through peephole":
-            val = True
-            print("You peer through the peephole. It's cloudy out. There's "
-                  +"no one around.\n")
-        if inp.lower() == "lock with small key":
-            val = True
-            front_door.is_locked = True
-            front_door_lock.desc = "It's locked."
-            print("You fit the key into the lock and turn. The door clicks "
-                  +"- it's locked.\n")
-        if inp.lower() == "unlock with small key":
-            val = True
-            front_door.is_locked = False
-            front_door_lock.desc = "It's unlocked."
-            print("You fit the key into the lock and unlock the door.\n")
 
-    # Carry out -AIDANS_SINK_CAB REACTIONS-...
-    if go_deeper == aidans_sink_cab:
-        if inp.lower() == "open sink cabinet":
+
+    # Carry out -COMMON OPENABLE-WITH-CONTENTS REACTIONS-...
+    if openable == aidans_sink_cab or openable == blacks_desk:
+        if inp.lower() == "open "+openable.name:
             val = True
-            aidans_sink_cab.try_open()
-            aidans_sink_cab.can_examine = True
-            aidans_sink_cab.desc = "It's open."
-            if aidans_sink_cab.objs != []:
-                contents_str = get_contents_str(aidans_sink_cab)
-                print("You pull both handles and swing the cabinet doors open.\n"
-                      +"Inside, you see "+contents_str+"\n")
+            openable.try_open()
+            openable.can_examine_contents = "int"
+            if get_int_contents(openable)[0] != "":
+                if get_unhid_int_objs(openable) != []:
+                    if openable == aidans_sink_cab:
+                        print("You pull both handles and swing the cabinet doors open.\n\n"
+                              +"Inside, you see "+get_int_contents(aidans_sink_cab)[0]+"\n")
+                    if openable == blacks_desk:
+                        print("You pull the handle of the drawer and slide it open.\n\n"
+                              +"Inside, you see "+get_int_contents(blacks_desk)[0]+"\n")
+                else:
+                    if openable == aidans_sink_cab:
+                        print("You pull both handles and swing the cabinet doors open.\n\n"+get_int_contents(aidans_sink_cab)[0]+"\n")
+                    if openable == blacks_desk:
+                        print("You pull the handle of the drawer and slide it open.\n\n"+get_int_contents(blacks_desk)[0]+"\n")
             else:
-                print("You pull both handles and swing the cabinet doors open. "
-                      +"It's empty.\n")
-        if inp.lower() == "close sink cabinet":
+                if openable == aidans_sink_cab:
+                    print("You pull both handles and swing the cabinet doors open. It's empty.\n")
+                if openable == blacks_desk:
+                    print("You pull the handle of the drawer and slide it open. It's empty.\n")
+        if inp.lower() == "close "+openable.name:
             val = True
-            aidans_sink_cab.close()
-            aidans_sink_cab.can_examine = False
-            aidans_sink_cab.desc = "It's a little beat up."
-            print("You gently swing the doors shut.\n")
+            openable.close()
+            openable.can_examine_contents = "ext"
+            if openable == aidans_sink_cab:
+                print("You gently swing the doors shut.\n")
+            if openable == blacks_desk:
+                print("You push the drawer shut with a muffled click.\n")
+
+    return val
+
+
+# Generate each possible -GO_DEEPER ACTION-...
+def go_deeper_actions(go_deeper):
+    """List the possible actions in the Go_Deeper.
+
+    Go_Deeper -> string"""
+
+    opt_str = ""
+    
+    # List -FRONT_DOOR ACTIONS-...
+    if go_deeper == front_door:
+        if front_door.can_examine_contents == "ext":
+            opt_str += " - ['look through peephole']"
+
+    # List -BLACKS_DESK ACTIONS-...
+    if go_deeper == blacks_desk:
+        opt_str += " - ['touch desk']"
+
+    # List -PHOTO ACTIONS-...
+    if go_deeper == photo:
+        opt_str += " - ['touch photo']"
+
+    return opt_str
+
+
+# Carry out a -GO_DEEPER REACTION-...
+def go_deeper_reactions(go_deeper, inp):
+    """Carry out what the action causes.
+
+    Go_Deeper, string -> None"""
+
+    val = "invalid"
+
+    # Carry out -PHOTO REACTIONS-...
+    if go_deeper == photo:
+        if inp.lower() == "touch photo":
+            val = True
+            print("You touch the photo.\n")
 
     # Carry out -BLACKS_DESK REACTIONS-...
     if go_deeper == blacks_desk:
-        if inp.lower() == "open desk":
+        if inp.lower() == "touch desk":
             val = True
-            blacks_desk.try_open()
-            blacks_desk.can_examine = True
-            blacks_desk.desc = "It's made of some dark wood, and looks polished. The drawer is hanging open."
-            if blacks_desk.objs != []:
-                contents_str = get_contents_str(blacks_desk)
-                print("You pull the handle of the drawer and slide it open.\n"
-                      +"Inside, you see "+contents_str+"\n")
-            else:
-                print("You pull the handle of the drawer and slide it open. It's empty.\n")
-        if inp.lower() == "close desk":
+            print("You touch the desk.\n")
+
+    # Carry out -FRONT_DOOR REACTIONS-...
+    if go_deeper == front_door:
+        if inp.lower() == "look through peephole" and \
+           front_door.can_examine_contents == "ext":
             val = True
-            blacks_desk.close()
-            blacks_desk.can_examine = False
-            blacks_desk.desc = "It's made of some dark wood, and looks polished. There's a drawer."
-            print("You push the drawer shut with a muffled click.\n")
+            print("You peer through the peephole. It's cloudy out. There's "
+                  +"no one around.\n")                    
+
     return val
 
 
@@ -318,53 +646,37 @@ def go_deeper(go_deeper):
 
     Go_Deeper -> None"""
 
+    if isinstance(go_deeper, Openable) == False:
+        print(go_deeper.describe()+get_ext_traits(go_deeper)[0])
+        if get_ext_traits(go_deeper)[0] != "":
+            print("")
+    else:
+        if go_deeper.can_examine_contents == "ext":
+            if get_unhid_ext_objs(go_deeper) != []:
+                print(go_deeper.describe()+" On the "+go_deeper.name+", you see "
+                      +get_ext_contents(go_deeper)[0]+"\n")
+            else:
+                print(go_deeper.describe()+get_ext_contents(go_deeper)[0]+"\n")
+        else:
+            if get_unhid_int_objs(go_deeper) != []:
+                print(go_deeper.describe()+" Inside, you see "
+                      +get_int_contents(go_deeper)[0]+"\n")
+            else:
+                print(go_deeper.describe()+get_int_contents(go_deeper)[0]+"\n")                
+
     val = True
-        
+
     while True:
-            
+        
         if val == True:
+        
             if go_deeper.has_action == True:
-                print(action(go_deeper))
-            trait_str = ""
-            for trait in go_deeper.traits:
-                if trait_str == "":
-                    trait_str += trait.name
-                else:
-                    trait_str += ", "+trait.name
-            try:
-                obj_str = ""
-                for obj in go_deeper.objs:
-                    if isinstance(obj, Hidden):
-                        if obj.was_revealed == False:
-                            if obj_str == "":
-                                obj_str += obj.hid_name
-                            else:
-                                obj_str += ", "+obj.hid_name
-                        else:
-                            if obj_str == "":
-                                obj_str += obj.name
-                            else:
-                                obj_str += ", "+obj.name
-                    else:
-                        if obj_str == "":
-                            obj_str += obj.name
-                        else:
-                            obj_str += ", "+obj.name
-                if go_deeper.can_examine == False:
-                    print(" - ['examine OBJECT'] ( "+go_deeper.name+" )")
-                else:
-                    if trait_str != "" and obj_str != "":
-                        examine_str = ", "+trait_str+", "+obj_str
-                    elif trait_str != "" and obj_str == "":
-                        examine_str = ", "+trait_str
-                    elif trait_str == "" and obj_str != "":
-                        examine_str = ", "+obj_str
-                    else:
-                        examine_str = ""
-                    print(" - ['examine OBJECT'] ( "+go_deeper.name
-                              +examine_str+" )")
-            except:
-                print(" - ['examine OBJECT'] ( "+go_deeper.name+", "+trait_str+" )")
+                if go_deeper_actions(go_deeper) != "":
+                    print(go_deeper_actions(go_deeper))
+            if isinstance(go_deeper, Openable):
+                print(openable_actions(go_deeper))
+            else:
+                print(" - ['examine OBJECT'] ( "+go_deeper.name+get_ext_traits(go_deeper)[1]+" )")
             print(" - ['go back']")
             
         inp = input("\n")
@@ -374,36 +686,33 @@ def go_deeper(go_deeper):
 
         # If the command is for a Go_Deeper that -HAS ACTION-...
         if go_deeper.has_action == True:
-            val = reaction(go_deeper, inp)
+            val = go_deeper_reactions(go_deeper, inp)
+        if val != True:
+            if isinstance(go_deeper, Openable):
+                val = openable_reactions(go_deeper, inp)
             
         # If the command is to -GO_DEEPER EXAMINE- an object or trait...
-        if inp.lower().startswith("examine"):
-            target = "lol"
-            val = True
-            if inp[8:].lower() == go_deeper.name:
-                print(go_deeper.desc+"\n")
-            else:
-                for obj in obj_list:
-                    if isinstance(obj, Hidden):
-                        if obj.hid_name.lower() == inp[8:].lower():
-                            target = obj
-                    if obj.name.lower() == inp[8:].lower():
-                        target = obj
-                for trait in trait_list:
-                    if trait.name.lower() == inp[8:].lower():
-                        target = trait
-                if target not in go_deeper.traits and target not in go_deeper.objs:
-                    val = "invalid target"
-                if target == "lol":
-                    val = "invalid target"                        
-                try:
-                    if go_deeper.can_examine == False:
-                        val = "invalid target"
-                    else:
-                        if val == True:
-                            print(target.describe())
-                            print("")                        
-                except:
+        if isinstance(go_deeper, Openable) == False:
+            if inp.lower().startswith("examine"):
+                target = "lol"
+                val = True
+                if inp[8:].lower() == go_deeper.name:
+                    print(go_deeper.describe()+get_ext_traits(go_deeper)[0]+"\n")
+                else:
+                    for trait in go_deeper.traits:
+                        if isinstance(trait, Hidden_Trait) and \
+                           trait.hid_name.lower() == inp[8:].lower():
+                            if trait.was_revealed == False:
+                                target = trait
+                        elif isinstance(trait, Hidden_Trait) and \
+                           trait.name.lower() == inp[8:].lower():
+                            if trait.was_revealed == True:
+                                target = trait
+                        else:
+                            if trait.name.lower() == inp[8:].lower():
+                                target = trait
+                    if target == "lol":
+                        val = "invalid target"                        
                     if val == True:
                         print(target.describe())
                         print("")
@@ -415,10 +724,10 @@ def go_deeper(go_deeper):
         # If the command is -GO_DEEPER INVALID-...
         if val == "invalid":
             print("[not a valid command]")
-        if val == "object not here":
-            print("[that object is not here]")
         if val == "invalid target":
             print("[not a valid target]")
+        if val == "not examined":
+            print("[you must examine that before you can take it]")
             
     return ("You turn away from the "+go_deeper.name+".\n")
 
@@ -673,12 +982,10 @@ while True:
         if target == "lol":
             val = "invalid target"
         if val == True:
-            if target.describe() != "go_deeper":
-                print(target.describe())
-                print("")
-            else:
-                print(target.desc+"\n")
+            if isinstance(target, Go_Deeper):
                 print(go_deeper(target))
+            else:
+                print(target.describe()+"\n")
 
     # If the command is to -TALK- to a character...
     if inp.lower().startswith("talk to"):
